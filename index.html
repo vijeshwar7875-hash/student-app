@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html ng-app="studentApp">
+<head>
+    <title>Home</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+</head>
+
+<body ng-controller="HomeController">
+
+    <h1>Student Management</h1>
+
+    <a href="index.html">Home</a>
+    <a href="manage.html">Manage Students</a>
+
+    <h3>Add Student</h3>
+
+    <form ng-submit="addStudent()">
+        <input type="number" ng-model="newStudent.id" placeholder="ID" required>
+        <input type="text" ng-model="newStudent.name" placeholder="Name" required>
+        <input type="number" ng-model="newStudent.age" placeholder="Age" required>
+        <button type="submit">Add</button>
+    </form>
+
+    <h3>Students</h3>
+
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Age</th>
+        </tr>
+
+        <tr ng-repeat="s in students">
+            <td>{{s.id}}</td>
+            <td>{{s.name}}</td>
+            <td>{{s.age}}</td>
+        </tr>
+    </table>
+
+    <script>
+        var app = angular.module("studentApp", []);
+
+        app.controller("HomeController", function($scope, $http) {
+            $scope.students = [];
+
+            $http.get("http://localhost:5210/students")
+            .then(function(response) {
+                $scope.students = response.data;
+            });
+
+            $scope.addStudent = function() {
+                $http.post("http://localhost:5210/students", $scope.newStudent)
+                .then(function(response) {
+                    $scope.students.push(response.data);
+                    $scope.newStudent = {};
+                });
+            };
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html ng-app="studentApp">
+<head>
+    <title>Manage Students</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+</head>
+
+<body ng-controller="ManageController">
+
+    <h1>Manage Students</h1>
+
+    <a href="index.html">Home</a>
+    <a href="manage.html">Manage Students</a>
+
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Age</th>
+            <th>Actions</th>
+        </tr>
+
+        <tr ng-repeat="s in students">
+            <td>{{s.id}}</td>
+            <td>{{s.name}}</td>
+            <td>{{s.age}}</td>
+            <td>
+                <button ng-click="edit(s)">Edit</button>
+                <button ng-click="deleteStudent(s.id)">Delete</button>
+            </td>
+        </tr>
+    </table>
+
+    <div ng-if="selected">
+        <h3>Update Student</h3>
+
+        <form ng-submit="updateStudent()">
+            <input ng-model="selected.name" placeholder="Name" required>
+            <input type="number" ng-model="selected.age" placeholder="Age" required>
+            <button type="submit">Update</button>
+        </form>
+    </div>
+
+    <script>
+        var app = angular.module("studentApp", []);
+
+        app.controller("ManageController", function($scope, $http) {
+
+            $scope.load = function() {
+                $http.get("http://localhost:5210/students")
+                .then(function(response) {
+                    $scope.students = response.data;
+                });
+            };
+
+            $scope.edit = function(s) {
+                $scope.selected = angular.copy(s);
+            };
+
+            $scope.updateStudent = function() {
+                $http.put(
+                    "http://localhost:5210/students/" + $scope.selected.id,
+                    $scope.selected
+                ).then(function() {
+                    $scope.selected = null;
+                    $scope.load();
+                });
+            };
+
+            $scope.deleteStudent = function(id) {
+                $http.delete("http://localhost:5210/students/" + id)
+                .then(function() {
+                    $scope.load();
+                });
+            };
+
+            $scope.load();
+        });
+    </script>
+
+</body>
+</html>
