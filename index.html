@@ -1,60 +1,159 @@
+
 <!DOCTYPE html>
 <html ng-app="studentApp">
 <head>
-    <title>Home</title>
+    <title>Student Management</title>
+
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+
+  
+<style>
+    body {
+        font-family: Arial;
+        background-color: #eeeeee;
+        margin: 20px;
+        color: #222;
+    }
+
+    header {
+        background-color: #34495e;
+        color: white;
+        padding: 10px;
+    }
+
+    nav {
+        margin-top: 15px;
+        margin-bottom: 20px;
+    }
+
+    nav a {
+        margin-right: 20px;
+        color: blue;
+    }
+
+    .card {
+        background-color: white;
+        padding: 15px;
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+    }
+
+    input {
+        padding: 6px;
+        margin: 5px 3px;
+        border: 1px solid gray;
+    }
+
+    button {
+        padding: 7px 10px;
+        background-color: #ddd;
+        border: 1px solid gray;
+        cursor: pointer;
+    }
+
+    table {
+        width: 100%;
+        margin-top: 10px;
+        background-color: white;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 9px;
+        border: 1px solid #aaa;
+        text-align: left;
+    }
+
+    th {
+        background-color: #ddd;
+    }
+</style>
+
 </head>
 
 <body ng-controller="HomeController">
 
-    <h1>Student Management</h1>
+    <header>
+        <h2>Student Management System</h2>
+        <p>Manage student records</p>
+    </header>
 
-    <a href="index.html">Home</a>
-    <a href="manage.html">Manage Students</a>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="manage.html">Manage Students</a>
+    </nav>
 
-    <h3>Add Student</h3>
+    <main>
 
-    <form ng-submit="addStudent()">
-        <input type="number" ng-model="newStudent.id" placeholder="ID" required>
-        <input type="text" ng-model="newStudent.name" placeholder="Name" required>
-        <input type="number" ng-model="newStudent.age" placeholder="Age" required>
-        <button type="submit">Add</button>
-    </form>
+        <div class="card">
+            <h3>Add Student</h3>
 
-    <h3>Students</h3>
+            <form ng-submit="addStudent()">
+                <input type="number" ng-model="newStudent.id"
+                       placeholder="Student ID" required>
 
-    <table border="1">
-        <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Age</th>
-        </tr>
+                <input type="text" ng-model="newStudent.name"
+                       placeholder="Student Name" required>
 
-        <tr ng-repeat="s in students">
-            <td>{{s.id}}</td>
-            <td>{{s.name}}</td>
-            <td>{{s.age}}</td>
-        </tr>
-    </table>
+                <input type="number" ng-model="newStudent.age"
+                       placeholder="Age" min="1" required>
+
+                <button type="submit">Add Student</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3>Student Records</h3>
+
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Age</th>
+                </tr>
+
+                <tr ng-repeat="s in students">
+                    <td>{{s.id}}</td>
+                    <td>{{s.name}}</td>
+                    <td>{{s.age}}</td>
+                </tr>
+
+                <tr ng-if="students.length == 0">
+                    <td colspan="3">No students found</td>
+                </tr>
+            </table>
+        </div>
+
+    </main>
 
     <script>
         var app = angular.module("studentApp", []);
 
         app.controller("HomeController", function($scope, $http) {
+
             $scope.students = [];
+            $scope.newStudent = {};
 
-            $http.get("http://localhost:5210/students")
-            .then(function(response) {
-                $scope.students = response.data;
-            });
-
-            $scope.addStudent = function() {
-                $http.post("http://localhost:5210/students", $scope.newStudent)
+            $scope.load = function() {
+                $http.get("http://localhost:5210/students")
                 .then(function(response) {
-                    $scope.students.push(response.data);
-                    $scope.newStudent = {};
+                    $scope.students = response.data;
                 });
             };
+
+            $scope.addStudent = function() {
+                $http.post("http://localhost:5210/students",
+                    $scope.newStudent)
+                .then(function() {
+                    $scope.newStudent = {};
+                    $scope.load();
+                    alert("Student added successfully");
+                }, function() {
+                    alert("Unable to add student. Check the ID.");
+                });
+            };
+
+            $scope.load();
         });
     </script>
 

@@ -1,50 +1,166 @@
+
 <!DOCTYPE html>
 <html ng-app="studentApp">
 <head>
     <title>Manage Students</title>
+
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f3f5f7;
+            margin: 0;
+            color: #222;
+        }
+
+        header {
+            background: #243447;
+            color: white;
+            padding: 18px 35px;
+        }
+
+        nav {
+            background: white;
+            padding: 15px 35px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        nav a {
+            color: #243447;
+            text-decoration: none;
+            margin-right: 25px;
+        }
+
+        main {
+            width: 85%;
+            max-width: 900px;
+            margin: 30px auto;
+        }
+
+        .card {
+            background: white;
+            padding: 22px;
+            margin-bottom: 22px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+
+        input {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            background: #243447;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 2px;
+        }
+
+        .delete {
+            background: #b83232;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #e9edf1;
+        }
+    </style>
 </head>
 
 <body ng-controller="ManageController">
 
-    <h1>Manage Students</h1>
+    <header>
+        <h2>Student Management System</h2>
+        <p>Update and delete student records</p>
+    </header>
 
-    <a href="index.html">Home</a>
-    <a href="manage.html">Manage Students</a>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="manage.html">Manage Students</a>
+    </nav>
 
-    <table border="1">
-        <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Age</th>
-            <th>Actions</th>
-        </tr>
+    <main>
 
-        <tr ng-repeat="s in students">
-            <td>{{s.id}}</td>
-            <td>{{s.name}}</td>
-            <td>{{s.age}}</td>
-            <td>
-                <button ng-click="edit(s)">Edit</button>
-                <button ng-click="deleteStudent(s.id)">Delete</button>
-            </td>
-        </tr>
-    </table>
+        <div class="card">
+            <h3>Manage Students</h3>
 
-    <div ng-if="selected">
-        <h3>Update Student</h3>
+            <input type="text" ng-model="search"
+                   placeholder="Search students">
 
-        <form ng-submit="updateStudent()">
-            <input ng-model="selected.name" placeholder="Name" required>
-            <input type="number" ng-model="selected.age" placeholder="Age" required>
-            <button type="submit">Update</button>
-        </form>
-    </div>
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Age</th>
+                    <th>Actions</th>
+                </tr>
+
+                <tr ng-repeat="s in students | filter:search | orderBy:'name'">
+                    <td>{{s.id}}</td>
+                    <td>{{s.name}}</td>
+                    <td>{{s.age}}</td>
+                    <td>
+                        <button ng-click="edit(s)">Edit</button>
+                        <button class="delete"
+                                ng-click="deleteStudent(s.id)">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+
+                <tr ng-if="students.length == 0">
+                    <td colspan="4">No students found</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="card" ng-if="selected">
+            <h3>Update Student</h3>
+
+            <form ng-submit="updateStudent()">
+                <p>Student ID: {{selected.id}}</p>
+
+                <input type="text" ng-model="selected.name"
+                       placeholder="Name" required>
+
+                <input type="number" ng-model="selected.age"
+                       placeholder="Age" min="1" required>
+
+                <button type="submit">Save Changes</button>
+
+                <button type="button"
+                        ng-click="selected = null">
+                    Cancel
+                </button>
+            </form>
+        </div>
+
+    </main>
 
     <script>
         var app = angular.module("studentApp", []);
 
         app.controller("ManageController", function($scope, $http) {
+
+            $scope.students = [];
 
             $scope.load = function() {
                 $http.get("http://localhost:5210/students")
@@ -62,16 +178,23 @@
                     "http://localhost:5210/students/" + $scope.selected.id,
                     $scope.selected
                 ).then(function() {
+                    alert("Student updated");
                     $scope.selected = null;
                     $scope.load();
+                }, function() {
+                    alert("Update failed");
                 });
             };
 
             $scope.deleteStudent = function(id) {
-                $http.delete("http://localhost:5210/students/" + id)
-                .then(function() {
-                    $scope.load();
-                });
+                if (confirm("Delete this student?")) {
+                    $http.delete("http://localhost:5210/students/" + id)
+                    .then(function() {
+                        $scope.load();
+                    }, function() {
+                        alert("Delete failed");
+                    });
+                }
             };
 
             $scope.load();
